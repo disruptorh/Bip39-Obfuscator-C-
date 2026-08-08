@@ -1,0 +1,212 @@
+# ---------------------------------------------------------------------------
+# .gitignore
+#
+# ADVERTENCIA IMPORTANTE (leer antes de confiar solo en este archivo):
+# .gitignore únicamente evita que git empiece a rastrear archivos NUEVOS
+# que coincidan con estos patrones. NO protege contra:
+#   - Un archivo que ya fue commiteado antes de añadir la regla (sigue en
+#     el historial para siempre, incluso si lo borras después).
+#   - `git add -f` (force-add), que ignora este archivo deliberadamente.
+#   - Secretos pegados directamente dentro de código fuente o commits.
+# Para eso hace falta, además de este archivo:
+#   1. Un pre-commit hook con `gitleaks` o `git-secrets` que escanee el
+#      diff antes de cada commit.
+#   2. Si un secreto real llegó a commitearse alguna vez: reescribir el
+#      historial con `git filter-repo` (o BFG Repo-Cleaner) y rotar ese
+#      secreto como si ya estuviera comprometido — asumir que sí lo está.
+# ---------------------------------------------------------------------------
+
+# ===========================================================================
+# Internal / non-public documents (keep out of the public repository)
+# ===========================================================================
+/PLAN_*.md
+/NOTAS*.md
+/README.local.md
+docs/internal/
+*.internal.md
+*.private.md
+/tests
+
+# ===========================================================================
+# Secrets & key material (never commit real keys, seeds or passphrases)
+# ===========================================================================
+# --- Entorno / configuración ---
+.env
+.env.*
+!.env.example
+!.env.*.example
+.envrc
+*.envrc
+.netrc
+.npmrc
+.pypirc
+.git-credentials
+
+# --- Certificados y claves criptográficas genéricas ---
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.crt
+*.cer
+*.der
+*.csr
+*.priv
+*.gpg
+*.pgp
+*.asc
+
+# --- Claves SSH (por convención de nombre, sin extensión) ---
+id_rsa
+id_rsa.*
+id_dsa
+id_dsa.*
+id_ecdsa
+id_ecdsa.*
+id_ed25519
+id_ed25519.*
+*_rsa
+*_dsa
+*_ecdsa
+*_ed25519
+known_hosts
+.ssh/
+
+# --- Material específico de este proyecto: semillas, mnemonics, wallets ---
+*.mnemonic
+*.seed
+*seed*.txt
+*seed*.json
+*passphrase*.txt
+*passphrase*.json
+*mnemonic*.txt
+*mnemonic*.json
+wallet.dat
+*.wallet
+xprv*
+xpub*.txt
+
+# --- Credenciales de nube / infraestructura ---
+.aws/
+.gcloud/
+*-credentials.json
+*service-account*.json
+terraform.tfstate
+terraform.tfstate.*
+*.tfvars
+!*.tfvars.example
+
+# --- Palabras clave genéricas en nombre de archivo (defensa en profundidad;
+#     revisar antes de commitear cualquier archivo cuyo nombre coincida) ---
+*secret*
+*secrets*
+*credential*
+*credentials*
+!**/docs/**/*credential*
+!crypto_core/*
+!ui/*
+
+# ===========================================================================
+# Build outputs
+# ===========================================================================
+/build*/
+/_deps/
+/cmake-build-*/
+/CMakeCache.txt
+/CMakeFiles/
+/Testing/
+CMakeUserPresets.json
+compile_commands.json
+
+# ===========================================================================
+# Compiler / preprocessed / coverage / profiling artifacts
+# ===========================================================================
+*.o
+*.obj
+*.slo
+*.lo
+*.o.d
+*.i
+*.gch
+*.pch
+*.gcda
+*.gcno
+*.gcov
+*.prof
+*.profraw
+*.profdata
+
+# ===========================================================================
+# Libraries / executables
+# ===========================================================================
+*.a
+*.la
+*.lai
+*.lib
+*.so
+*.so.*
+*.dylib
+*.dll
+*.exe
+*.out
+*.app
+*.mod
+*.smod
+
+# ===========================================================================
+# Tests / logs / core dumps
+# ===========================================================================
+*.log
+valgrind*.txt
+*.vgcore
+vgcore.*
+lastTest.log
+core
+core.*
+*.dmp
+*.crash
+
+# ===========================================================================
+# Editor / IDE / OS noise
+# ===========================================================================
+.vscode/
+.idea/
+*.iml
+*.user
+*.user.*
+.cache/
+.ccls-cache/
+*~
+*.swp
+*.swo
+*.swn
+*.bak
+*.orig
+*.rej
+*.old
+.DS_Store
+.AppleDouble
+._*
+.LSOverride
+Thumbs.db
+Desktop.ini
+
+# ===========================================================================
+# Packaging
+# ===========================================================================
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.deb
+*.rpm
+*.dmg
+
+# ===========================================================================
+# Volcados de memoria / debugging (pueden contener claves derivadas en RAM)
+# ===========================================================================
+*.dump
+heapdump*
+*.hprof
