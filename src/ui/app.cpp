@@ -1,9 +1,11 @@
 #include "ui/app.hpp"
+#include <algorithm>
 #include <chrono>
 #include <cstdlib>
 #include <cstring>
 #include <exception>
 #include <imgui.h>
+#include <sodium.h>
 
 namespace ui {
 
@@ -77,6 +79,8 @@ void app::shutdown() {
   input_secret_.release_and_zero();
   input_salt_hex_.release_and_zero();
   output_seed_.wipe();
+  addresses_.evm.clear();
+  addresses_.btc.clear();
 }
 
 void app::frame() {
@@ -86,9 +90,43 @@ void app::frame() {
   render_main_screen();
 }
 
+void app::render_copy_status(copy_state& item, std::uint64_t now) {
+  if (!item.active) return;
+  const std::uint64_t remaining =
+      (item.expires_at_ms > now) ? (item.expires_at_ms - now) : 0;
+  ImGui::TextColored(ImVec4(0.55f, 0.85f, 0.55f, 1.0f),
+                     "Copiado. Se limpiara en %llu s.",
+                     static_cast<unsigned long long>(remaining / 1000 + 1));
+}
+
+void app::render_address_field(const char* label, const std::string& value,
+                               copy_state& item, std::uint64_t now) {
+  ImGui::TextUnformatted(label);
+  char buf[96] = {};
+  if (!value.empty()) std::memcpy(buf, value.c_str(), value.size());
+  const float avail_x = ImGui::GetContentRegionAvail().x;
+  const float btn_w = std::max(96.0f, avail_x * 0.18f);
+  ImGui::PushID(label);
+  ImGui::SetNextItemWidth(avail_x - btn_w - ImGui::GetStyle().ItemSpacing.x);
+  ImGui::InputText("##addr", buf, sizeof(buf),
+                   ImGuiInputTextFlags_ReadOnly |
+                       ImGuiInputTextFlags_AutoSelectAll);
+  ImGui::SameLine();
+  if (ImGui::Button("Copiar", ImVec2(btn_w, 0))) {
+    begin_copy(item, value.c_str(), value.size(), now);
+  }
+  ImGui::PopID();
+  render_copy_status(item, now);
+  // The address was derived from the seed phrase; wipe the stack copy before
+  // returning so it cannot be read later from /proc/<pid>/mem or a debugger.
+  sodium_memzero(buf, sizeof(buf));
+}
+
 void app::begin_copy(copy_state& target, const char* text, std::size_t len, std::uint64_t now) {
   copy_output_.active = false;
   copy_salt_.active = false;
+  copy_evm_.active = false;
+  copy_btc_.active = false;
   last_error_.clear();
   clipboard_.set_text(text, len);
   if (clipboard_.is_active()) {
@@ -100,7 +138,7 @@ void app::begin_copy(copy_state& target, const char* text, std::size_t len, std:
 }
 
 void app::poll_copies(std::uint64_t now) {
-  copy_state* items[] = {&copy_output_, &copy_salt_};
+  copy_state* items[] = {&copy_output_, &copy_salt_, &copy_evm_, &copy_btc_};
   for (copy_state* item : items) {
     if (item->active && now >= item->expires_at_ms) item->active = false;
   }
@@ -126,10 +164,13 @@ void app::process_obfuscation() {
     }
     
     output_seed_ = bip39_obfuscator::crypto::transform_seed(params, wl_);
+    addresses_ = address::derive_from_mnemonic(output_seed_);
     last_error_.clear();
   } catch (const std::exception& e) {
     last_error_ = e.what();
     output_seed_.wipe();
+    addresses_.evm.clear();
+    addresses_.btc.clear();
   }
 }
 
@@ -192,6 +233,20 @@ void app::render_main_screen() {
       if (ImGui::Button(copy_output_.active ? "Copied!##output" : "Copy Result")) {
           begin_copy(copy_output_, output_seed_.data(), output_seed_.size(), now_ms());
       }
+      render_copy_status(copy_output_, now_ms());
+
+      ImGui::Spacing();
+      ImGui::Separator();
+      ImGui::Spacing();
+
+      ImGui::TextWrapped(
+          "Direcciones derivadas de esta semilla (cuenta 0, indice 0):");
+      ImGui::Spacing();
+      render_address_field("Ethereum (EVM, EIP-55)", addresses_.evm, copy_evm_,
+                           now_ms());
+      ImGui::Spacing();
+      render_address_field("Bitcoin (SegWit nativo, bech32)", addresses_.btc,
+                           copy_btc_, now_ms());
   }
 
   ImGui::End();
