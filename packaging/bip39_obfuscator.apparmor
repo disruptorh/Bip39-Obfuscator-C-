@@ -1,9 +1,9 @@
-# AppArmor profile for the airgapped BIP-39 seedphrase generator.
+# AppArmor profile for the airgapped BIP-39 seedphrase obfuscator.
 #
 # Install (as root):
-#   install -m 644 packaging/bip39_generator.apparmor \
-#       /etc/apparmor.d/bip39_generator
-#   apparmor_parser -r /etc/apparmor.d/bip39_generator
+#   install -m 644 packaging/bip39_obfuscator.apparmor \
+#       /etc/apparmor.d/bip39_obfuscator
+#   apparmor_parser -r /etc/apparmor.d/bip39_obfuscator
 #
 # This is defense-in-depth on top of the in-process seccomp filter
 # (src/security/seccomp.cpp): seccomp blocks AF_INET/AF_INET6 socket()
@@ -11,7 +11,7 @@
 # constrains file access.
 #include <tunables/global>
 
-profile bip39_generator /usr/local/bin/bip39_generator {
+profile bip39_obfuscator /usr/local/bin/bip39_obfuscator {
   #include <abstractions/base>
   #include <abstractions/opengl>
 

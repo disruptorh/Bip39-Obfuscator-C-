@@ -85,7 +85,7 @@ int main() {
       (smoke_env != nullptr) ? static_cast<double>(std::atof(smoke_env)) : 0.0;
 
   GLFWwindow* window =
-      glfwCreateWindow(840, 640, "BIP-39 Seedphrase Generator (Airgapped)",
+      glfwCreateWindow(840, 640, "BIP-39 Seedphrase Obfuscator (Airgapped)",
                        nullptr, nullptr);
   if (window == nullptr) {
     std::fprintf(stderr, "FATAL: could not create GLFW window\n");
